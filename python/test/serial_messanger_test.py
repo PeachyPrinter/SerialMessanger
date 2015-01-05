@@ -96,7 +96,7 @@ class SerialMessangerTest(unittest.TestCase):
 
     def test_when_data_for_registered_message_is_recieved_call_back_is_issued(self):
         self.test_serial_messanger.register(1, self.call_back, 'l')
-        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x00\x00\x17FOOT'
+        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -106,7 +106,7 @@ class SerialMessangerTest(unittest.TestCase):
 
     def test_when_data_for_registered_message_of_complex_type_is_recieved_call_back_is_issued(self):
         self.test_serial_messanger.register(1, self.call_back, 'hh')
-        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x00\x00\x17FOOT'
+        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -123,6 +123,16 @@ class SerialMessangerTest(unittest.TestCase):
         self.test_serial_messanger.join(1)
 
         self.assertEquals(None, self.call_back_args)
+
+    def test_when_data_for_registered_message_contains_footer(self):
+        self.test_serial_messanger.register(1, self.call_back, 'l')
+        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04FOOTFOOT'
+        self.test_serial_messanger.start()
+        time.sleep(self.time_to_wait_async)
+        self.test_serial_messanger.close()
+        self.test_serial_messanger.join(1)
+
+        self.assertEquals((1179602772,), self.call_back_args)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,12 @@ import struct
 import threading
 import time
 
+''' TODO:
+1. Logging 
+2. Sending Messages
+3. Length Specifier
+4. CheckSum
+'''
 
 '''Tool for serial communication alling for registration and call back of methods based on input data
 Usage:
@@ -55,6 +61,10 @@ class SerialMessanger(threading.Thread):
         if not self._running:
             raise Exception(self._connection_failure)
 
+    '''sends a tuple message with data as ctypes'''
+    def send_message(data, ctype):
+        pass
+
     def _is_valid_id(self, message_id):
         if message_id < 0 or message_id > 255:
             raise Exception('Message Id must be a integer between 0 and 255 (inclusive)')
@@ -82,10 +92,16 @@ class SerialMessanger(threading.Thread):
 
     def _process_data(self, data):
         message_id = str(struct.unpack('!h', data[:2])[0])
+        message_length = struct.unpack('!h', data[2:4])[0]
+
         if message_id in self._registered_messages:
             types, callback = self._registered_messages[message_id]
             fmt = '!' + types
-            data_tuple = struct.unpack(fmt, data[2:])
+            try:
+                data_tuple = struct.unpack(fmt, data[4:4+message_length])
+            except Exception as ex:
+                print(data)
+                raise ex
             callback(*data_tuple)
 
     def run(self):
@@ -98,11 +114,14 @@ class SerialMessanger(threading.Thread):
             while(self._running):
                 raw_data += self.connection.read(self._read_chuck_size)
                 header_index = raw_data.find(self.header)
-                if header_index >= 0:
-                    footer_index = raw_data[header_index:].find(self.footer)
-                    if footer_index > header_index:
-                        self._process_data(raw_data[header_index + len(self.header):footer_index])
-                        raw_data = raw_data[footer_index + len(self.footer):]
+                if len(raw_data[header_index:]) >= len(self.header) + 2 + 2 + len(self.footer):
+                    length = struct.unpack('!h', raw_data[len(self.header) + 2:][:2])[0]
+                    footer_index = header_index + len(self.header) + 2 + 2 + length
+                    if len(raw_data[header_index:]) >= footer_index:
+                        if self.footer == raw_data[footer_index:footer_index + len(self.footer)]:
+                            self._process_data(raw_data[header_index + len(self.header):footer_index])
+                            raw_data = raw_data[footer_index + len(self.footer):]
+
         except Exception as ex:
             print(ex)
         finally:
