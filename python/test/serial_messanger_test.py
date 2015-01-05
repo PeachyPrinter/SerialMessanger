@@ -15,13 +15,13 @@ class SerialMessangerTest(unittest.TestCase):
     def setUp(self):
         self.test_serial_messanger = None
         self.mock_connection = Mock()
-        self.test_serial_messanger = SerialMessanger(self.mock_connection, handshake = None)
+        self.test_serial_messanger = SerialMessanger(self.mock_connection, handshake=None)
 
     def tearDown(self):
         if self.test_serial_messanger:
             if self.test_serial_messanger.is_alive():
                 self.test_serial_messanger.close()
-                self.test_serial_messanger.join(1000)
+                self.test_serial_messanger.join(1)
 
     def test_register_id_must_be_between_0_and_255(self):
         with self.assertRaises(Exception):
@@ -36,12 +36,12 @@ class SerialMessangerTest(unittest.TestCase):
         self.assertEquals(True, self.test_serial_messanger.is_alive())
         self.test_serial_messanger.close()
         self.assertEquals(False, self.test_serial_messanger.is_alive())
-        self.test_serial_messanger.join(1000)
+        self.test_serial_messanger.join(1)
 
     def test_start_flushes_connection(self):
         self.test_serial_messanger.start()
         self.test_serial_messanger.close()
-        self.test_serial_messanger.join(1000)
+        self.test_serial_messanger.join(1)
         self.mock_connection.flushInput.assert_called_with()
         self.mock_connection.flushOutput.assert_called_with()
 
@@ -58,13 +58,21 @@ class SerialMessangerTest(unittest.TestCase):
             else:
                 raise Exception('test failure read too many bytes')
         self.mock_connection.read.side_effect = side_effect
-        self.test_serial_messanger = SerialMessanger(self.mock_connection,header=expected_header, footer=expected_footer, handshake=expected_handshake)
+        self.test_serial_messanger = SerialMessanger(self.mock_connection, header=expected_header, footer=expected_footer, handshake=expected_handshake)
         self.test_serial_messanger.start()
-
         self.test_serial_messanger.close()
-        self.test_serial_messanger.join(1000)
+        self.test_serial_messanger.join(1)
         self.mock_connection.write.assert_called_with(send_bytes)
 
+    def test_never_recieves_handshake(self):
+        expected_header = 'aaa'
+        expected_footer = 'ccc'
+        expected_handshake = 'hello'
+        self.mock_connection.read.return_value = 'z'
+        self.test_serial_messanger = SerialMessanger(self.mock_connection, header=expected_header, footer=expected_footer, handshake=expected_handshake)
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.start()
+        self.assertFalse(self.test_serial_messanger.is_alive())
 
 if __name__ == '__main__':
     unittest.main()
