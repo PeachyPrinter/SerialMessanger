@@ -10,7 +10,6 @@ Usage:
 
 class SerialMessanger(threading.Thread):
     '''Initialize the class with a started connection matching the pyserialAPI (http://pyserial.sourceforge.net/pyserial_api.html)
-
     Notes: 
         You will need to manage the starting and stopping of this connection outside of this class'''
     def __init__(self,
@@ -34,9 +33,14 @@ class SerialMessanger(threading.Thread):
     '''Registers a handler and arg types for a specific message id.
     message_id - Message ids should be an integer between 0 and 255 (inclusive)
     callback   - Method taking the types as parameters
-    types      - A list of ordered types corrosponding to the callback parameters'''
+    types      - A list of ordered c-types (struct-like) corrosponding to the callback parameters'''
     def register(self, message_id, callback, types):
         self._is_valid_id(message_id)
+        try:
+            struct.calcsize(types)
+        except Exception as ex:
+            raise ex
+
 
     '''Shutdowns thread'''
     def close(self):
@@ -44,6 +48,7 @@ class SerialMessanger(threading.Thread):
         while self.is_alive():
             time.sleep(0.1)
 
+    '''Blocking start until handshake is complete'''
     def start(self):
         super(SerialMessanger, self).start()
         while not self._running and self._connection_failure is None:
@@ -62,7 +67,7 @@ class SerialMessanger(threading.Thread):
             self.connection.write(handshake)
             recieved = ''
             while not handshake in recieved and time.time() < timeout:
-                read = self.connection.read(1)
+                read = self.connection.read(10)
                 recieved += read
             if not handshake in recieved:
                 self._connection_failure = "Handshake Timed Out"

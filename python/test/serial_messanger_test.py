@@ -23,14 +23,6 @@ class SerialMessangerTest(unittest.TestCase):
                 self.test_serial_messanger.close()
                 self.test_serial_messanger.join(1)
 
-    def test_register_id_must_be_between_0_and_255(self):
-        with self.assertRaises(Exception):
-            self.test_serial_messanger.register(-1, self.call_back, type(123))
-        with self.assertRaises(Exception):
-            self.test_serial_messanger.register(256, self.call_back, type(123))
-
-        self.test_serial_messanger.register(1, self.call_back, type(123))
-
     def test_starts_and_stops(self):
         self.test_serial_messanger.start()
         self.assertEquals(True, self.test_serial_messanger.is_alive())
@@ -69,10 +61,25 @@ class SerialMessangerTest(unittest.TestCase):
         expected_footer = 'ccc'
         expected_handshake = 'hello'
         self.mock_connection.read.return_value = 'z'
-        self.test_serial_messanger = SerialMessanger(self.mock_connection, header=expected_header, footer=expected_footer, handshake=expected_handshake)
+        self.test_serial_messanger = SerialMessanger(self.mock_connection, header=expected_header, footer=expected_footer, handshake=expected_handshake, handshake_timeout_sec=0.3)
         with self.assertRaises(Exception):
             self.test_serial_messanger.start()
         self.assertFalse(self.test_serial_messanger.is_alive())
+
+    def test_register_id_must_be_between_0_and_255(self):
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.register(-1, self.call_back, 'h')
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.register(256, self.call_back, 'h')
+
+        self.test_serial_messanger.register(1, self.call_back, 'h')
+
+    def test_register_types_must_be_struct_compatible(self):
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.register(1, self.call_back, 'a')
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.register(1, self.call_back, type(123))
+        self.test_serial_messanger.register(1, self.call_back, 'b')
 
 if __name__ == '__main__':
     unittest.main()
