@@ -104,6 +104,14 @@ class SerialMessanger(threading.Thread):
                 raise ex
             callback(*data_tuple)
 
+    @property
+    def _minimum_message_length(self):
+        return len(self.header) + 2 + 2 + len(self.footer)
+
+    @property
+    def _preamble_length(self):
+        return len(self.header) + 2 + 2
+    
     def run(self):
         self.connection.flushInput()
         self.connection.flushOutput()
@@ -114,9 +122,9 @@ class SerialMessanger(threading.Thread):
             while(self._running):
                 raw_data += self.connection.read(self._read_chuck_size)
                 header_index = raw_data.find(self.header)
-                if len(raw_data[header_index:]) >= len(self.header) + 2 + 2 + len(self.footer):
-                    length = struct.unpack('!h', raw_data[len(self.header) + 2:][:2])[0]
-                    footer_index = header_index + len(self.header) + 2 + 2 + length
+                if len(raw_data[header_index:]) >= self._minimum_message_length:
+                    length = struct.unpack('!h', raw_data[header_index + len(self.header) + 2:][:2])[0]
+                    footer_index = header_index + self._preamble_length + length
                     if len(raw_data[header_index:]) >= footer_index:
                         if self.footer == raw_data[footer_index:footer_index + len(self.footer)]:
                             self._process_data(raw_data[header_index + len(self.header):footer_index])

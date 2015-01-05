@@ -134,6 +134,16 @@ class SerialMessangerTest(unittest.TestCase):
 
         self.assertEquals((1179602772,), self.call_back_args)
 
+    def test_when_data_preceeds_header(self):
+        self.test_serial_messanger.register(1, self.call_back, 'l')
+        self.mock_connection.read.return_value = '\x34HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+        self.test_serial_messanger.start()
+        time.sleep(self.time_to_wait_async)
+        self.test_serial_messanger.close()
+        self.test_serial_messanger.join(1)
+
+        self.assertEquals((23,), self.call_back_args)
+
 
 if __name__ == '__main__':
     unittest.main()
