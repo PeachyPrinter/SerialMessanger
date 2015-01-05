@@ -104,6 +104,26 @@ class SerialMessangerTest(unittest.TestCase):
 
         self.assertEquals((23,), self.call_back_args)
 
+    def test_when_data_for_registered_message_of_complex_type_is_recieved_call_back_is_issued(self):
+        self.test_serial_messanger.register(1, self.call_back, 'hh')
+        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x00\x00\x17FOOT'
+        self.test_serial_messanger.start()
+        time.sleep(self.time_to_wait_async)
+        self.test_serial_messanger.close()
+        self.test_serial_messanger.join(1)
+
+        self.assertEquals((0, 23), self.call_back_args)
+
+    def test_when_data_for_registered_message_and_wrong_length_is_recieved_doesnt_call(self):
+        self.test_serial_messanger.register(1, self.call_back, 'hh')
+        self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x00\x17FOOT'
+        self.test_serial_messanger.start()
+        time.sleep(self.time_to_wait_async)
+        self.test_serial_messanger.close()
+        self.test_serial_messanger.join(1)
+
+        self.assertEquals(None, self.call_back_args)
+
 
 if __name__ == '__main__':
     unittest.main()
