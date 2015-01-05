@@ -26,7 +26,7 @@ class SerialMessanger(threading.Thread):
         self.header = header
         self.footer = footer
         self.handshake = handshake
-        self._handshake_timeout_sec = handshake_timeout_sec
+        self.handshake_timeout_sec = handshake_timeout_sec
 
         self._running = False
         self._connection_failure = None
@@ -57,7 +57,7 @@ class SerialMessanger(threading.Thread):
 
     def _do_handshake(self):
         if self.handshake:
-            timeout = time.time() + self._handshake_timeout_sec
+            timeout = time.time() + self.handshake_timeout_sec
             handshake = self.header + self.handshake + self.footer
             self.connection.write(handshake)
             recieved = ''
