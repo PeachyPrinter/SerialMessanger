@@ -20,3 +20,13 @@ void SerialMessanger::init(byte *aheader, byte *afooter, byte *ahandshake)
   footer = afooter;
   handshake = ahandshake;
 }
+
+void SerialMessanger::sendMessage(Message message)
+{
+    
+}
+
+Message SerialMessanger::recieveMessage()
+{
+
+}

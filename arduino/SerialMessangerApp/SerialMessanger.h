@@ -2,6 +2,7 @@
 #define SerialMessanger_h
 
 #include "Arduino.h"
+@include "Message.h"
 
 class SerialMessanger
 {
@@ -11,8 +12,9 @@ class SerialMessanger
     byte *header;
     byte *footer;
     byte *handshake;
-    void sendMessage(byte *data);
-    void readMessage();
+    void sendMessage(Message);
+    Message readMessage();
+    void registerMessageHandler(short messageId, int messageLength, handler)
   private:
     void init(byte *header,byte *footer,byte *hanshake);
 };
