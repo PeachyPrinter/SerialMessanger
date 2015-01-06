@@ -65,7 +65,9 @@ class SerialMessanger(threading.Thread):
     def send_message(self, messageid, data_tuple, types):
         self._is_valid_id(messageid)
         self._is_valid_types(types)
-        packed_data = struct.pack('!' + types, *data_tuple)
+        length = struct.calcsize('!'+types)
+        packed_data = self.header + struct.pack('!hh' + types, messageid, length, *data_tuple) + self.footer
+        self.connection.write(packed_data)
 
     def _is_valid_id(self, message_id):
         if message_id < 0 or message_id > 255:

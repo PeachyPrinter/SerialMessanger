@@ -184,11 +184,15 @@ class SerialMessangerTest(unittest.TestCase):
         with self.assertRaises(Exception):
             self.test_serial_messanger.send_message(1, ('asdf',), 'c')
 
-    # def test_send_message_should_write_message_to_serial(self):
-    #     pass
+    def test_send_message_should_write_message_to_serial(self):
+        self.test_serial_messanger.send_message(1, (23,), 'l')
+        expected_packet = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+        self.mock_connection.write.assert_called_with(expected_packet)
 
-    # def test_send_message_should_write_complex_message_to_serial(self):
-    #     pass
+    def test_send_message_should_write_complex_message_to_serial(self):
+        self.test_serial_messanger.send_message(1, (23, 23), 'hh')
+        expected_packet = 'HEAD\x00\x01\x00\x04\x00\x17\x00\x17FOOT'
+        self.mock_connection.write.assert_called_with(expected_packet)
 
     # def test_send_message_should_be_thread_safe(self):
     #     pass
