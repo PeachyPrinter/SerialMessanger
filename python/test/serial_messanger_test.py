@@ -192,7 +192,7 @@ class SerialMessangerTest(unittest.TestCase):
 
     def test_send_message_should_write_message_to_serial(self):
         expected_packet = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
-        
+
         self.test_serial_messanger.start()
         self.test_serial_messanger.send_message(1, (23,), 'l')
         self.test_serial_messanger.close()

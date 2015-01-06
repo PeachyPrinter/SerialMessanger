@@ -6,7 +6,7 @@ import re
 
 
 ''' TODO:
-1. Logging 
+1. Logging
 2. with Support
 3. CheckSum
 4. HEADER in pre message data
@@ -43,7 +43,6 @@ class SerialMessanger(threading.Thread):
         self._connection_failure = None
         self._registered_messages = {}
         self._send_lock = threading.Lock()
-
 
     '''Registers a handler and arg types for a specific message id.
     message_id - Message ids should be an integer between 0 and 255 (inclusive)
@@ -119,7 +118,7 @@ class SerialMessanger(threading.Thread):
                 callback(*data_tuple)
             except Exception as ex:
                 print("Recieved Data: %s (%s) Caused Exception: %s" % (data,  re.findall('..', binascii.hexlify(data)), ex))
-            
+
     @property
     def _minimum_message_length(self):
         return len(self.header) + 2 + 2 + len(self.footer)
