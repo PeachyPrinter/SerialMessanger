@@ -14,7 +14,7 @@ class SerialMessangerTest(unittest.TestCase):
         self.call_back_args = args
 
     def setUp(self):
-        self.time_to_wait_async = 0.5
+        self.time_to_wait_async = 0.2
         self.call_back_args = None
         self.test_serial_messanger = None
         self.mock_connection = MagicMock()
@@ -154,6 +154,47 @@ class SerialMessangerTest(unittest.TestCase):
 
         self.assertEquals((23,), self.call_back_args)
 
+    # TODO JT 2015-01-06 - Come back to this
+    # def test_when_data_containing_header_preceeds_header(self):
+    #     self.test_serial_messanger.register(1, self.call_back, 'l')
+    #     self.mock_connection.read.return_value = 'HEAD\x34HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+    #     self.test_serial_messanger.start()
+    #     time.sleep(self.time_to_wait_async)
+    #     self.test_serial_messanger.close()
+    #     self.test_serial_messanger.join(1)
+
+    #     self.assertEquals((23,), self.call_back_args)
+
+    def test_send_message_should_raise_exception_if_message_id_invalid(self):
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.send_message('a', (123,), 'h')
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.send_message(-1, (123,), 'h')
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.send_message(256, (123,), 'h')
+
+    def test_send_message_should_raise_exception_if_types_invalid(self):
+        for character in ['<h', '>h', '@h', '=h', '!h']:
+            with self.assertRaises(Exception):
+                self.test_serial_messanger.send_message(1, (123,), character)
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.send_message(1, (123,), 'r')
+
+    def test_send_message_should_raise_exception_if_data_unmatched_types(self):
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.send_message(1, ('asdf',), 'c')
+
+    # def test_send_message_should_write_message_to_serial(self):
+    #     pass
+
+    # def test_send_message_should_write_complex_message_to_serial(self):
+    #     pass
+
+    # def test_send_message_should_be_thread_safe(self):
+    #     pass
+
+    # def test_send_message_should_send_asyncronously(self):
+    #     pass
 
 if __name__ == '__main__':
     unittest.main()
