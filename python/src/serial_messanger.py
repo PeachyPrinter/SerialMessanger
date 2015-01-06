@@ -1,13 +1,17 @@
 import struct
 import threading
 import time
+import binascii
+import re
 
 
 ''' TODO:
 1. Logging 
-2. Sending Messages
-3. Length Specifier
-4. CheckSum
+2. with Support
+3. CheckSum
+4. HEADER in pre message data
+5. Message too short
+6. Options to allow exceptions to cause failures
 '''
 
 '''Tool for serial communication alling for registration and call back of methods based on input data
@@ -23,7 +27,7 @@ class SerialMessanger(threading.Thread):
                  connection,
                  header='HEAD',
                  footer='FOOT',
-                 handshake="c",
+                 handshake=None,
                  handshake_timeout_sec=3):
         threading.Thread.__init__(self)
         self.connection = connection
@@ -112,11 +116,10 @@ class SerialMessanger(threading.Thread):
             fmt = '!' + types
             try:
                 data_tuple = struct.unpack(fmt, data[4:4+message_length])
+                callback(*data_tuple)
             except Exception as ex:
-                print(data)
-                raise ex
-            callback(*data_tuple)
-
+                print("Recieved Data: %s (%s) Caused Exception: %s" % (data,  re.findall('..', binascii.hexlify(data)), ex))
+            
     @property
     def _minimum_message_length(self):
         return len(self.header) + 2 + 2 + len(self.footer)

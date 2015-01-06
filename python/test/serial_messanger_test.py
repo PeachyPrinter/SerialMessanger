@@ -192,15 +192,19 @@ class SerialMessangerTest(unittest.TestCase):
 
     def test_send_message_should_write_message_to_serial(self):
         expected_packet = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
-
+        
+        self.test_serial_messanger.start()
         self.test_serial_messanger.send_message(1, (23,), 'l')
+        self.test_serial_messanger.close()
 
         self.mock_connection.write.assert_called_with(expected_packet)
 
     def test_send_message_should_write_complex_message_to_serial(self):
         expected_packet = 'HEAD\x00\x01\x00\x04\x00\x17\x00\x17FOOT'
 
+        self.test_serial_messanger.start()
         self.test_serial_messanger.send_message(1, (23, 23), 'hh')
+        self.test_serial_messanger.close()
 
         self.mock_connection.write.assert_called_with(expected_packet)
 
@@ -208,8 +212,10 @@ class SerialMessangerTest(unittest.TestCase):
         expected_packet1 = 'HEAD\x00\x01\x00\x04\x00\x17\x00\x17FOOT'
         expected_packet2 = 'HEAD\x00\x02\x00\x04\x00\x00\x00\x17FOOT'
 
+        self.test_serial_messanger.start()
         self.test_serial_messanger.send_message(1, (23, 23), 'hh')
         self.test_serial_messanger.send_message(2, (23,), 'l')
+        self.test_serial_messanger.close()
 
         self.mock_connection.write.calls[0][0][1](expected_packet1)
         self.mock_connection.write.calls[0][0][1](expected_packet2)
