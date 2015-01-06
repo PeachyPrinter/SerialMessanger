@@ -2,6 +2,7 @@ import struct
 import threading
 import time
 
+
 ''' TODO:
 1. Logging 
 2. Sending Messages
@@ -37,6 +38,8 @@ class SerialMessanger(threading.Thread):
         self._running = False
         self._connection_failure = None
         self._registered_messages = {}
+        self._send_lock = threading.Lock()
+
 
     '''Registers a handler and arg types for a specific message id.
     message_id - Message ids should be an integer between 0 and 255 (inclusive)
@@ -63,11 +66,17 @@ class SerialMessanger(threading.Thread):
 
     '''sends a tuple message with data as ctypes'''
     def send_message(self, messageid, data_tuple, types):
-        self._is_valid_id(messageid)
-        self._is_valid_types(types)
-        length = struct.calcsize('!'+types)
-        packed_data = self.header + struct.pack('!hh' + types, messageid, length, *data_tuple) + self.footer
-        self.connection.write(packed_data)
+        if not self._running:
+            raise Exception('Serial Messanger is not running')
+        self._send_lock.acquire(True)
+        try:
+            self._is_valid_id(messageid)
+            self._is_valid_types(types)
+            length = struct.calcsize('!'+types)
+            packed_data = self.header + struct.pack('!hh' + types, messageid, length, *data_tuple) + self.footer
+            self.connection.write(packed_data)
+        finally:
+            self._send_lock.release()
 
     def _is_valid_id(self, message_id):
         if message_id < 0 or message_id > 255:

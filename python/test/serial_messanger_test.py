@@ -97,6 +97,7 @@ class SerialMessangerTest(unittest.TestCase):
     def test_when_data_for_registered_message_is_recieved_call_back_is_issued(self):
         self.test_serial_messanger.register(1, self.call_back, 'l')
         self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -107,6 +108,7 @@ class SerialMessangerTest(unittest.TestCase):
     def test_when_data_for_registered_message_of_complex_type_is_recieved_call_back_is_issued(self):
         self.test_serial_messanger.register(1, self.call_back, 'hh')
         self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -117,6 +119,7 @@ class SerialMessangerTest(unittest.TestCase):
     def test_when_data_for_registered_message_and_wrong_length_is_recieved_doesnt_call(self):
         self.test_serial_messanger.register(1, self.call_back, 'hh')
         self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x00\x17FOOT'
+
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -127,6 +130,7 @@ class SerialMessangerTest(unittest.TestCase):
     def test_when_data_for_registered_message_contains_footer(self):
         self.test_serial_messanger.register(1, self.call_back, 'l')
         self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04FOOTFOOT'
+
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -137,6 +141,7 @@ class SerialMessangerTest(unittest.TestCase):
     def test_when_data_for_registered_message_contains_header(self):
         self.test_serial_messanger.register(1, self.call_back, 'l')
         self.mock_connection.read.return_value = 'HEAD\x00\x01\x00\x04HEADFOOT'
+
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -147,6 +152,7 @@ class SerialMessangerTest(unittest.TestCase):
     def test_when_data_preceeds_header(self):
         self.test_serial_messanger.register(1, self.call_back, 'l')
         self.mock_connection.read.return_value = '\x34HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+
         self.test_serial_messanger.start()
         time.sleep(self.time_to_wait_async)
         self.test_serial_messanger.close()
@@ -185,20 +191,32 @@ class SerialMessangerTest(unittest.TestCase):
             self.test_serial_messanger.send_message(1, ('asdf',), 'c')
 
     def test_send_message_should_write_message_to_serial(self):
-        self.test_serial_messanger.send_message(1, (23,), 'l')
         expected_packet = 'HEAD\x00\x01\x00\x04\x00\x00\x00\x17FOOT'
+
+        self.test_serial_messanger.send_message(1, (23,), 'l')
+
         self.mock_connection.write.assert_called_with(expected_packet)
 
     def test_send_message_should_write_complex_message_to_serial(self):
-        self.test_serial_messanger.send_message(1, (23, 23), 'hh')
         expected_packet = 'HEAD\x00\x01\x00\x04\x00\x17\x00\x17FOOT'
+
+        self.test_serial_messanger.send_message(1, (23, 23), 'hh')
+
         self.mock_connection.write.assert_called_with(expected_packet)
 
-    # def test_send_message_should_be_thread_safe(self):
-    #     pass
+    def test_send_messages_should_write_complex_message_to_serial_many_times(self):
+        expected_packet1 = 'HEAD\x00\x01\x00\x04\x00\x17\x00\x17FOOT'
+        expected_packet2 = 'HEAD\x00\x02\x00\x04\x00\x00\x00\x17FOOT'
 
-    # def test_send_message_should_send_asyncronously(self):
-    #     pass
+        self.test_serial_messanger.send_message(1, (23, 23), 'hh')
+        self.test_serial_messanger.send_message(2, (23,), 'l')
+
+        self.mock_connection.write.calls[0][0][1](expected_packet1)
+        self.mock_connection.write.calls[0][0][1](expected_packet2)
+
+    def test_send_message_should_raise_exception_if_not_strated(self):
+        with self.assertRaises(Exception):
+            self.test_serial_messanger.send_message(1, (23,), 'l')
 
 if __name__ == '__main__':
     unittest.main()
