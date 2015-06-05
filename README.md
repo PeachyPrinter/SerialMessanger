@@ -1,3 +1,6 @@
+UNMAINTAINED - USE AT YOUR OWN RISK
+
+
 SerialMessanger
 ===============
 
